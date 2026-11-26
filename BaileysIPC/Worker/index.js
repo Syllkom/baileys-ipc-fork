@@ -3,6 +3,7 @@
 import path from 'path';
 import v8 from 'node:v8';
 import fs from 'fs';
+import { pathToFileURL } from 'url';
 
 import { parentPort, workerData } from "worker_threads";
 
@@ -29,7 +30,15 @@ import SQLiteAuthState from './Library/AuthState.js'
 import { randomBytes } from 'crypto';
 import pino from 'pino';
 
-const { version } = await fetchLatestBaileysVersion();
+// Fábrica de socket inyectable (workerData.socketFactory = ruta a un módulo con `export default (config) => sock`).
+// Sirve para pruebas sin WhatsApp. Sin ella, se usa Baileys real y se consulta la última versión.
+let createSocket = makeWASocket;
+let version;
+if (workerData.socketFactory) {
+    createSocket = (await import(pathToFileURL(workerData.socketFactory).href)).default;
+} else {
+    ({ version } = await fetchLatestBaileysVersion());
+}
 
 const CONNECTION = {
     version: version, emitOwnEvents: true,
@@ -89,7 +98,7 @@ async function StartSession() {
     if (workerData.connectType == 'qr-code') sockConfig
         .browser = Browsers.macOS('Desktop')
 
-    const sock = makeWASocket(sockConfig);
+    const sock = await createSocket(sockConfig);
     sock.ev.on('creds.update', saveCreds);
 
     if (workerData.connectType == 'pin-code') {

@@ -5,5 +5,16 @@
   "main": "BaileysIPC/index.js",
   "exports": {
     ".": "./BaileysIPC/index.js"
+  },
+  "devDependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
+    "dot-prop": "^10.2.0",
+    "pino": "^10.4.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "scripts": {
+    "test": "node --test --test-timeout=60000 \"test/*.test.js\""
   }
 }
